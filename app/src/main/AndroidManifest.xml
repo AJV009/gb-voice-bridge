@@ -13,6 +13,7 @@
         android:name=".App"
         android:allowBackup="false"
         android:usesCleartextTraffic="true"
+        android:icon="@mipmap/ic_launcher"
         android:label="GB Voice Bridge"
         android:theme="@android:style/Theme.Material.NoActionBar">
 

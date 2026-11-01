@@ -1,6 +1,46 @@
+# Based on github/gitignore Android.gitignore
+
+# Gradle files
 .gradle/
 build/
-/app/build/
-local.properties
-*.apk
 .kotlin/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Log/OS files
+*.log
+.DS_Store
+Thumbs.db
+
+# Android Studio generated files and folders
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+*.dex
+output.json
+output-metadata.json
+
+# IntelliJ / Android Studio
+*.iml
+.idea/
+misc.xml
+deploymentTargetDatabase.xml
+.navigation/
+
+# Keystore files (never commit signing keys)
+*.jks
+*.keystore
+keystore.properties
+
+# Google Services (e.g. APIs or Firebase)
+google-services.json
+
+# Android profiling
+*.hprof
+
+# Downloaded speech models (fetched at runtime, never bundled)
+*.onnx

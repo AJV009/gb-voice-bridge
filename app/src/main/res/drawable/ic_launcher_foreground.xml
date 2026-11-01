@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- A band with three sound bars: voice from the wrist. Adaptive icon, 108dp canvas, art inside the 66dp safe zone. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- straps -->
+    <path android:fillColor="#FFFFFF" android:fillAlpha="0.55"
+        android:pathData="M45,23h18v8h-18z M45,77h18v8h-18z" />
+    <!-- band body -->
+    <path android:strokeColor="#FFFFFF" android:strokeWidth="4"
+        android:pathData="M48,31h12a10,10 0 0 1 10,10v26a10,10 0 0 1 -10,10h-12a10,10 0 0 1 -10,-10v-26a10,10 0 0 1 10,-10z" />
+    <!-- sound bars -->
+    <path android:strokeColor="#FFFFFF" android:strokeWidth="4" android:strokeLineCap="round"
+        android:pathData="M47,50v8 M54,44v20 M61,48v12" />
+</vector>

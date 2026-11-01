@@ -39,6 +39,7 @@ import com.ajv009.gbvoice.webhook.Webhook
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.json.JSONObject
 import java.util.UUID
 
 /** Send each dictation (text, and optionally audio) to your own server; its answer is shown on the watch. */
@@ -111,7 +112,7 @@ fun WebhookScreen() {
 
         Section("What your server receives") {
             Text(
-                Webhook.payload(sample(), null),
+                JSONObject(Webhook.payload(sample(), null)).toString(2).replace("\\/", "/"),
                 style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace,
                 modifier = Modifier.padding(16.dp),
             )

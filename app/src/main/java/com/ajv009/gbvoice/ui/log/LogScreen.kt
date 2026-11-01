@@ -72,7 +72,7 @@ fun LogScreen(onOpenSpeech: () -> Unit, onOpenSetup: () -> Unit) {
             )
         } else item {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("${entries.size} dictations", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
+                Text(if (entries.size == 1) "1 dictation" else "${entries.size} dictations", style = MaterialTheme.typography.titleSmall, modifier = Modifier.weight(1f))
                 TextButton(onClick = { confirmClear = true }) { Text("Clear all") }
             }
         }
