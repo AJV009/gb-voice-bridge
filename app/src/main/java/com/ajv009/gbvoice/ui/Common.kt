@@ -24,6 +24,9 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.Role
@@ -48,8 +51,11 @@ fun GbVoiceTheme(content: @Composable () -> Unit) {
 /** A scrolling page of sections. */
 @Composable
 fun Page(content: @Composable ColumnScope.() -> Unit) {
+    val focus = LocalFocusManager.current
     Column(
-        Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
+        // Tapping anywhere outside a text field closes the keyboard
+        Modifier.fillMaxWidth().pointerInput(Unit) { detectTapGestures { focus.clearFocus() } }
+            .verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp),
         content = content,
     )

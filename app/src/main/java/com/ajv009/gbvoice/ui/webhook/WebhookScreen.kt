@@ -2,30 +2,19 @@ package com.ajv009.gbvoice.ui.webhook
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Visibility
-import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ajv009.gbvoice.App
@@ -48,7 +37,6 @@ fun WebhookScreen() {
     val app = App.get(LocalContext.current)
     val s by app.settings.state.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
-    var showToken by remember { mutableStateOf(false) }
     var testResult by remember { mutableStateOf<String?>(null) }
 
     Page {
@@ -58,35 +46,7 @@ fun WebhookScreen() {
             }
         }
 
-        Section("Server") {
-            Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(
-                    s.webhookUrl, { url -> app.settings.update { it.copy(webhookUrl = url) } },
-                    label = { Text("URL") }, placeholder = { Text("https://example.com/voice") },
-                    singleLine = true, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                if (s.webhookUrl.startsWith("http://")) Text(
-                    "http:// is not encrypted. Use it only inside a private network such as Tailscale.",
-                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error,
-                )
-                OutlinedTextField(
-                    s.webhookToken, { token -> app.settings.update { it.copy(webhookToken = token) } },
-                    label = { Text("Bearer token (optional)") }, singleLine = true,
-                    visualTransformation = if (showToken) VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        IconButton(onClick = { showToken = !showToken }) {
-                            Icon(if (showToken) Icons.Filled.VisibilityOff else Icons.Filled.Visibility, "Show token")
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                )
-                Text(
-                    "The token is encrypted on this phone and only sent to this URL, as an Authorization header.",
-                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-        }
+        Section("Server") { ServerCard(s, app.settings) }
 
         Section("What to send") {
             SwitchRow(
