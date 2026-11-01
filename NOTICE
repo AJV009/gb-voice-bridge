@@ -1,0 +1,20 @@
+GB Voice Bridge
+Copyright 2026 Alphons Jaimon
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This product includes third-party software:
+
+- Concentus (pure Java Opus decoder), in app/src/main/java/org/concentus/
+  Copyright (c) 2007-2011 Xiph.Org Foundation, CSIRO, Skype Limited, Jean-Marc Valin,
+  Timothy B. Terriberry, Gregory Maxwell, Logan Stromberg and others.
+  BSD 3-Clause licence; the full text is kept in each source file's header.
+
+- sherpa-onnx (app/libs/sherpa-onnx-static-link-onnxruntime-2.0.1.aar)
+  Copyright Xiaomi Corporation and the k2-fsa contributors. Apache License 2.0.
+  https://github.com/k2-fsa/sherpa-onnx
+  Statically links ONNX Runtime, Copyright Microsoft Corporation, MIT licence.
+  https://github.com/microsoft/onnxruntime
+
+Speech models are not bundled. The app downloads them from Hugging Face on request:
+- NVIDIA Parakeet TDT 0.6B v2/v3 (sherpa-onnx int8 export), CC-BY-4.0
+- OpenAI Whisper tiny.en/base.en/small.en (sherpa-onnx int8 export), MIT

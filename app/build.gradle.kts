@@ -12,9 +12,18 @@ android {
         minSdk = 28
         targetSdk = 36
         versionCode = 3
-        versionName = "0.3"
+        versionName = "0.3.0"
         ndk {
             abiFilters += "arm64-v8a"
+        }
+    }
+
+    buildTypes {
+        release {
+            // Signed outside Gradle with apksigner, so no signing key ever sits in the build tree
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
 
