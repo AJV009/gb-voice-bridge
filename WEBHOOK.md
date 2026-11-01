@@ -24,7 +24,8 @@ Body:
 - `engine` and `transcript` are `null` when the phone is set to leave transcription to your server.
 - `audio` is present only when "Include the audio" is on, or when the phone does not transcribe.
   The audio is 16-bit mono WAV at 16 kHz, about 450 KB for 14 s (about 600 KB as base64).
-- `source` is `phone_mic` for the "Send a test" button.
+- The "Send a test" button sends `"source": "phone_mic"` and `"test": true`. A server should answer it (for example
+  "Connected to …") without acting on the transcript. Real dictations never carry `test`.
 
 ## Response
 - Any 2xx counts as delivered. Anything else is logged as "not sent" and can be resent from the log.

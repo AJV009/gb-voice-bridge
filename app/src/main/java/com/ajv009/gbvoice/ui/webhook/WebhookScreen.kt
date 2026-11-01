@@ -134,7 +134,9 @@ private fun sample() = Entry(
 private fun sendTest(url: String, token: String): String = try {
     val test = sample().copy(id = UUID.randomUUID().toString(), at = System.currentTimeMillis(),
         source = Source.PHONE_MIC, transcript = "Test from GB Voice Bridge")
-    val result = Webhook.post(url, token, test.id, Webhook.payload(test, null), 15_000)
+    // "test": true lets the server answer without acting on it (see WEBHOOK.md)
+    val body = JSONObject(Webhook.payload(test, null)).put("test", true).toString()
+    val result = Webhook.post(url, token, test.id, body, 15_000)
     "HTTP ${result.code}. " + (result.reply?.let { "The watch would show: $it" } ?: "No reply text, so the watch would show the transcript.")
 } catch (e: Exception) {
     "Failed: ${e.message ?: e.javaClass.simpleName}"
