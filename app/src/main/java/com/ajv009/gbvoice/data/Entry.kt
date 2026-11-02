@@ -25,12 +25,15 @@ data class Entry(
     val error: String? = null,
     val hasAudio: Boolean = false,
     val transcribeMs: Long = 0,
+    /** Name of the keyword route it went to; null for the default webhook or none. */
+    val route: String? = null,
 ) {
     fun toJson(): JSONObject = JSONObject()
         .put("id", id).put("at", at).put("source", source.name).put("durationMs", durationMs)
         .put("engine", engine).put("transcript", transcript).put("shown", shown)
         .put("delivery", delivery.name).put("httpCode", httpCode).put("serverReply", serverReply)
         .put("error", error).put("hasAudio", hasAudio).put("transcribeMs", transcribeMs)
+        .put("route", route)
 
     companion object {
         fun fromJson(o: JSONObject) = Entry(
@@ -47,6 +50,7 @@ data class Entry(
             error = o.optStringOrNull("error"),
             hasAudio = o.optBoolean("hasAudio"),
             transcribeMs = o.optLong("transcribeMs"),
+            route = if (o.has("route")) o.optStringOrNull("route") else null,
         )
 
         private fun JSONObject.optStringOrNull(key: String): String? =

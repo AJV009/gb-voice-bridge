@@ -32,7 +32,7 @@ fun SpeechScreen() {
                 "The phone skips transcription and sends the audio to your webhook.",
                 selected = !s.transcribeOnPhone,
             ) { app.settings.update { it.copy(transcribeOnPhone = false) } }
-            if (!s.transcribeOnPhone && !(s.webhookEnabled && s.webhookUrl.isNotBlank())) {
+            if (!s.transcribeOnPhone && s.defaultHook == null) {
                 Hint("Set up the webhook in the Webhook tab, otherwise the watch gets nothing back.")
             }
         }

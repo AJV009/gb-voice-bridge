@@ -3,6 +3,7 @@ package com.ajv009.gbvoice.webhook
 import android.util.Base64
 import com.ajv009.gbvoice.audio.Wav
 import com.ajv009.gbvoice.data.Entry
+import com.ajv009.gbvoice.routing.RouteMatch
 import org.json.JSONObject
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -18,13 +19,14 @@ data class WebhookResult(val code: Int, val reply: String?)
 /**
  * POSTs one dictation as JSON (format "gbvoice/1", documented in WEBHOOK.md):
  * id, recorded_at, source, duration_ms, engine, transcript and, optionally, audio as base64 WAV.
+ * When a keyword route picked the webhook, transcript is the text after the keyword and "route" tells what was cut.
  * The server may answer {"title": "...", "text": "..."} or plain text, which is shown on the watch.
  */
 object Webhook {
     const val FORMAT = "gbvoice/1"
     private const val MAX_REPLY = 1000
 
-    fun payload(entry: Entry, audio: FloatArray?, encode: (ByteArray) -> String = ::base64): String {
+    fun payload(entry: Entry, audio: FloatArray?, match: RouteMatch? = null, encode: (ByteArray) -> String = ::base64): String {
         val json = JSONObject()
             .put("format", FORMAT)
             .put("id", entry.id)
@@ -32,7 +34,13 @@ object Webhook {
             .put("source", entry.source.name.lowercase(Locale.ROOT))
             .put("duration_ms", entry.durationMs)
             .put("engine", entry.engine ?: JSONObject.NULL)
-            .put("transcript", entry.transcript ?: JSONObject.NULL)
+            .put("transcript", match?.text ?: entry.transcript ?: JSONObject.NULL)
+        if (match != null) {
+            json.put("route", JSONObject()
+                .put("webhook", match.hook.label)
+                .put("keyword", match.heard)
+                .put("full_transcript", entry.transcript))
+        }
         if (audio != null) {
             json.put("audio", JSONObject()
                 .put("content_type", "audio/wav")

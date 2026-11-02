@@ -12,6 +12,8 @@ import com.ajv009.gbvoice.data.Replacement
 import com.ajv009.gbvoice.data.Settings
 import com.ajv009.gbvoice.data.SettingsState
 import com.ajv009.gbvoice.data.Source
+import com.ajv009.gbvoice.routing.Router
+import com.ajv009.gbvoice.routing.Target
 import com.ajv009.gbvoice.webhook.Webhook
 import com.ajv009.gbvoice.webhook.WebhookResult
 import java.util.UUID
@@ -26,7 +28,7 @@ data class WatchText(val text: String, val error: Boolean = false)
 
 /**
  * One recording in, one line for the watch out: transcribe (unless the user sends audio only), apply word
- * replacements, call the webhook if configured, and record everything in the history.
+ * replacements, pick the webhook (a keyword route or the default, see [Router]), call it, and record everything.
  */
 class Pipeline(private val context: Context, private val settings: Settings, private val history: HistoryStore) {
     private val network = Executors.newCachedThreadPool()
@@ -56,17 +58,20 @@ class Pipeline(private val context: Context, private val settings: Settings, pri
         return done
     }
 
-    /** Sends an entry to the webhook again (with its stored audio when audio is sent). Blocking. */
+    /** Sends an entry again, routed by today's settings (with its stored audio when audio is sent). Blocking. */
     fun resend(id: String) {
         val entry = history.get(id) ?: return
         val s = settings.current
-        if (!s.webhookEnabled || s.webhookUrl.isBlank()) return
-        val audio = if (s.sendsAudio && entry.hasAudio) {
+        val target = Router.target(entry.transcript, s) ?: return
+        val audio = if (sendsAudio(s) && entry.hasAudio) {
             runCatching { OpusFrames.decode(OpusFrames.read(history.audioFile(id))) }.getOrNull()
         } else null
-        history.update(id) { it.copy(delivery = Delivery.SENDING, error = null) }
-        runCatching { deliver(entry, audio, s) }
+        history.update(id) { it.copy(delivery = Delivery.SENDING, error = null, route = target.match?.hook?.label) }
+        runCatching { deliver(entry, audio, target) }
     }
+
+    /** Audio goes along when the user asked for it or when the phone does not transcribe. */
+    private fun sendsAudio(s: SettingsState) = s.webhookSendAudio || !s.transcribeOnPhone
 
     private fun transcribe(entry: Entry, samples: FloatArray, s: SettingsState): Entry {
         if (!s.transcribeOnPhone) return entry
@@ -88,7 +93,8 @@ class Pipeline(private val context: Context, private val settings: Settings, pri
 
     private fun finish(entry: Entry, samples: FloatArray, s: SettingsState, deadline: Long): WatchText {
         val transcript = entry.transcript?.ifBlank { null }
-        if (!s.webhookEnabled || s.webhookUrl.isBlank()) {
+        val target = Router.target(entry.transcript, s)
+        if (target == null) {
             val shown = when {
                 transcript != null -> transcript
                 entry.transcript != null -> NOTHING_HEARD
@@ -97,10 +103,10 @@ class Pipeline(private val context: Context, private val settings: Settings, pri
             history.add(entry.copy(shown = shown))
             return WatchText(shown, error = entry.transcript == null)
         }
-        val sending = entry.copy(delivery = Delivery.SENDING)
+        val sending = entry.copy(delivery = Delivery.SENDING, route = target.match?.hook?.label)
         history.add(sending)
-        val audio = if (s.sendsAudio) samples else null
-        val call = network.submit(Callable { deliver(sending, audio, s) })
+        val audio = if (sendsAudio(s)) samples else null
+        val call = network.submit(Callable { deliver(sending, audio, target) })
         val shown = try {
             val result = call.get(maxOf(deadline - System.currentTimeMillis(), 0), TimeUnit.MILLISECONDS)
             WatchText(result.reply ?: transcript ?: "Sent")
@@ -108,16 +114,18 @@ class Pipeline(private val context: Context, private val settings: Settings, pri
             WatchText(transcript ?: "Sent; the server is still working")
         } catch (e: ExecutionException) {
             val why = e.cause?.message ?: "error"
-            if (transcript != null) WatchText("$transcript\n(webhook failed: $why)") else WatchText("Webhook failed: $why", true)
+            val what = target.match?.hook?.label ?: "webhook"
+            if (transcript != null) WatchText("$transcript\n($what failed: $why)") else WatchText("Webhook failed: $why", true)
         }
         history.update(entry.id) { it.copy(shown = shown.text) }
         return shown
     }
 
     /** POSTs and records the outcome; the call may outlive the watch's wait, the history still gets it. */
-    private fun deliver(entry: Entry, audio: FloatArray?, s: SettingsState): WebhookResult {
+    private fun deliver(entry: Entry, audio: FloatArray?, target: Target): WebhookResult {
         try {
-            val result = Webhook.post(s.webhookUrl, s.webhookToken, entry.id, Webhook.payload(entry, audio), WEBHOOK_TIMEOUT_MS)
+            val body = Webhook.payload(entry, audio, target.match)
+            val result = Webhook.post(target.hook.url, target.hook.token, entry.id, body, WEBHOOK_TIMEOUT_MS)
             history.update(entry.id) {
                 it.copy(delivery = Delivery.SENT, httpCode = result.code, serverReply = result.reply, error = null)
             }

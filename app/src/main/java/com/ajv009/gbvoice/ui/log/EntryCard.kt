@@ -6,6 +6,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -74,7 +75,7 @@ fun EntryCard(entry: Entry) {
                         runCatching { Player.play(OpusFrames.decode(OpusFrames.read(app.history.audioFile(entry.id)))) }
                     }
                 }) { Icon(Icons.Filled.PlayArrow, "Play") }
-                if (entry.source == Source.WATCH && app.settings.current.webhookEnabled) IconButton(onClick = {
+                if (entry.source == Source.WATCH && app.settings.current.anyWebhook) IconButton(onClick = {
                     scope.launch(Dispatchers.IO) { app.pipeline.resend(entry.id) }
                 }) { Icon(Icons.Filled.Refresh, "Send to webhook again") }
                 IconButton(onClick = { app.history.delete(entry.id) }) { Icon(Icons.Filled.Delete, "Delete") }
@@ -103,7 +104,8 @@ private fun Details(entry: Entry) {
 private fun MetaRow(entry: Entry) {
     val muted = MaterialTheme.colorScheme.onSurfaceVariant
     val style = MaterialTheme.typography.labelMedium
-    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+    // Wraps on narrow screens: "sent to <route>" can make the line long
+    FlowRow(itemVerticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Icon(
             if (entry.source == Source.WATCH) Icons.Filled.Watch else Icons.Filled.PhoneAndroid,
             contentDescription = if (entry.source == Source.WATCH) "From the watch" else "Phone mic test",
@@ -118,11 +120,12 @@ private fun MetaRow(entry: Entry) {
 
 @Composable
 private fun DeliveryLabel(entry: Entry, style: androidx.compose.ui.text.TextStyle) {
+    val to = entry.route?.ifBlank { null }?.let { " to $it" }.orEmpty()
     val (text, color) = when (entry.delivery) {
         Delivery.OFF -> return
-        Delivery.SENDING -> "· sending…" to MaterialTheme.colorScheme.onSurfaceVariant
-        Delivery.SENT -> "· sent" to MaterialTheme.colorScheme.primary
-        Delivery.FAILED -> "· not sent" to MaterialTheme.colorScheme.error
+        Delivery.SENDING -> "· sending$to…" to MaterialTheme.colorScheme.onSurfaceVariant
+        Delivery.SENT -> "· sent$to" to MaterialTheme.colorScheme.primary
+        Delivery.FAILED -> "· not sent$to" to MaterialTheme.colorScheme.error
     }
     Text(text, style = style, color = if (color == Color.Unspecified) MaterialTheme.colorScheme.onSurface else color)
 }

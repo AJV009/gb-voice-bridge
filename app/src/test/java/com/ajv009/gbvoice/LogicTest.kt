@@ -6,6 +6,7 @@ import com.ajv009.gbvoice.data.Entry
 import com.ajv009.gbvoice.data.Replacement
 import com.ajv009.gbvoice.data.SettingsState
 import com.ajv009.gbvoice.data.Source
+import com.ajv009.gbvoice.routing.Hook
 import com.ajv009.gbvoice.webhook.Webhook
 import org.json.JSONObject
 import org.junit.Assert.assertArrayEquals
@@ -38,11 +39,14 @@ class LogicTest {
 
     @Test
     fun audioIsSentWhenAskedOrWhenThePhoneDoesNotTranscribe() {
-        assertFalse(SettingsState(webhookEnabled = true).sendsAudio)
-        assertTrue(SettingsState(webhookEnabled = true, webhookSendAudio = true).sendsAudio)
-        assertTrue(SettingsState(webhookEnabled = true, transcribeOnPhone = false).sendsAudio)
+        val hook = Hook(id = "h", name = "Server", url = "https://x")
+        val on = SettingsState(hooks = listOf(hook), defaultHookId = "h")
+        assertFalse(on.sendsAudio)
+        assertTrue(on.copy(webhookSendAudio = true).sendsAudio)
+        assertTrue(on.copy(transcribeOnPhone = false).sendsAudio)
         assertFalse(SettingsState(transcribeOnPhone = false).isUsable)
-        assertTrue(SettingsState(transcribeOnPhone = false, webhookEnabled = true, webhookUrl = "https://x").isUsable)
+        assertFalse(SettingsState(transcribeOnPhone = false, hooks = listOf(hook)).isUsable) // saved but not chosen
+        assertTrue(on.copy(transcribeOnPhone = false).isUsable)
     }
 
     @Test
