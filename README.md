@@ -12,8 +12,11 @@ Needs a Gadgetbridge build with the Zepp OS voice-service change (Codeberg PR #7
   Whisper tiny/base/small (English). Models download in the background and are checksum-checked.
 - Or "transcribe on your server": the audio goes straight to your webhook.
 - Dictation log with playback, copy, resend and delete; word replacements.
-- Webhook: JSON with the transcript and optional WAV audio, bearer token stored encrypted
-  (format in [WEBHOOK.md](WEBHOOK.md)).
+- Webhooks: JSON with the transcript and optional WAV audio (format in [WEBHOOK.md](WEBHOOK.md)). Save each server
+  once (name, URL, secret stored encrypted); the list checks every connection when opened and lets you copy URLs
+  and secrets.
+- Keyword routes: start a dictation with a keyword ("Organizer, add milk") to send it to that keyword's webhook,
+  keyword removed. Everything else goes to the default webhook, or nowhere.
 - Only apps you allow, checked by signing certificate, can send audio.
 
 ## Install
